@@ -1,0 +1,32 @@
+---
+title: "p8105_hw5_zz2603"
+author: "Ziyi Zhao"
+date: "11/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+
+```
+
+
+
+```{r}
+set.seed(10)
+
+iris_with_missing = iris %>% 
+  map_df(~replace(.x, sample(1:150, 20), NA)) %>%
+  mutate(Species = as.character(Species))
+
+
+
+```
+
+
+
+```{r}
+
+```
+
+
