@@ -40,9 +40,11 @@ output = map(iris_with_missing,missiris)
 
 ```
 
-
-
+# Problem 2
 ```{r}
+name_study <- list.files(path = "./hw5_data/data")
+
+
 
 ```
 
