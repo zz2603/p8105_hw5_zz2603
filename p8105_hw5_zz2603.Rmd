@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(viridis)
 
 ```
 
@@ -44,8 +45,67 @@ output = map(iris_with_missing,missiris)
 ```{r}
 name_study <- list.files(path = "./hw5_data/data")
 
+study_df <- tibble(name_study) %>% t() %>% as_tibble()
+
+dtlst = vector("list",length = 20)
+longdata <- function(x) {
+  a = read_csv(paste0("./hw5_data/data/",x[[i]])) %>%
+  t() %>% as_tibble()
+  a
+}
+
+for (i in 1:20) {
+  dtlst[[i]] = longdata(study_df)
+}
+
+dflst = vector("list",length = 20)
+dflst[[1]] <- dtlst[[1]]
+for (i in 2:20) {
+  dflst[[i]] <- bind_cols(dflst[[i-1]],dtlst[i])  
+}
+
+finaldf <- dflst[[20]]
+colnames(finaldf) <- substr(study_df[1,],1,6)
+finaldf <- bind_cols(finaldf,tibble(Week = c(1:8)))
+
+tidydf <- finaldf %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    con_01:exp_10,
+    names_to = "Arm_ID",
+    values_to = "Weekly_data"
+  )
+
+tidydf %>% 
+  mutate(arm = substr(Arm_ID,1,3)) %>% 
+  ggplot(aes(x=week,y=Weekly_data))+
+  geom_line(aes(group=Arm_ID,color=arm))+
+  scale_color_viridis(name="Arm",discrete = TRUE)+
+  theme_classic()+
+  labs(
+    x="Time (Weeks)",
+    y="Weekly Data",
+    title = "Longitudinal Study"
+  )+
+  theme(
+    plot.title = element_text(face = "bold")
+  )
+
+```
+
+From the plot, we can find there is a general increasing trend in experiment group as the time increase. The data of two groups between week 2 are largely overlapped, but then the values of experiment group began to increase slightly as time p increase. The general trend among control group tends to be flat. Until week 6, most subjects in experiment group have greater values than values in control groups.
+
+# Problem 3
+```{r}
 
 
 ```
+
+
+
+
+
+
+
 
 
