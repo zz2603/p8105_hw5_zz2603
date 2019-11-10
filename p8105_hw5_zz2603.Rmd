@@ -96,13 +96,105 @@ tidydf %>%
 From the plot, we can find there is a general increasing trend in experiment group as the time increase. The data of two groups between week 2 are largely overlapped, but then the values of experiment group began to increase slightly as time p increase. The general trend among control group tends to be flat. Until week 6, most subjects in experiment group have greater values than values in control groups.
 
 # Problem 3
-```{r}
+```{r, message=FALSE}
+set.seed(1)
 
+output = vector("list", 10000)
+
+sim_regression = function(n=30,beta0=2,beta1) {
+  sim_data = tibble(
+    x = rnorm(n),
+    y = beta0 + beta1 * x + rnorm(n,0,sqrt(50)) 
+  )
+  
+  ls_fit = lm(y ~ x, data = sim_data)
+  
+  fits = summary(ls_fit)[[4]] %>% broom::tidy() %>% janitor::clean_names()
+  
+  fits
+}
+
+## when beta1 = 0
+for (i in 1:10000) {
+  output[[i]] = sim_regression(beta1 = 0)
+}
+
+sim_results = bind_rows(output) %>% 
+  filter(rownames=="x") %>% 
+  select(estimate,pr_t)
+
+## when beta1 is equal to 1 to 6
+beta1_list = list("beta1_1" = 1, 
+                  "beta1_2" = 2,
+                  "beta1_3" = 3,
+                  "beta1_4" = 4,
+                  "beta1_5" = 5,
+                  "beta1_6" = 6)
+
+output1 = vector("list",length=6)
+for (i in 1:6) {
+  output1[[i]] = rerun(10000, sim_regression(beta1=beta1_list[[i]])) %>% 
+    bind_rows() %>% filter(rownames=="x") %>% 
+    mutate(coeff = rownames,
+           coeff = recode(coeff,"x" = paste0("beta1_",i))) %>% 
+    select(coeff, pr_t)
+}
+
+sim1to6_result = bind_rows(output1) %>% 
+  group_by(coeff) %>% 
+  mutate(if_reject = case_when(
+    pr_t > 0.05 ~ "fail to reject",
+    pr_t <= 0.05 ~ "reject")
+  ) %>% group_by(coeff,if_reject) %>% 
+  summarize(n=n(),prop = n / 10000) %>% 
+  filter(if_reject=="reject")
+
+sim1to6_result %>% ggplot(aes(x=coeff,y=prop))+
+  geom_bar(stat = "identity")+
+  labs(x="True beta1 coefficient",
+       y="Proportion of reject the null",
+       title="Plot 1")+
+  theme(plot.title = element_text(face = "bold"))+
+  theme_classic()
 
 ```
 
+There is an increasing trend between the proportion of times the null was rejected and the true value of beta1. There is a positive association between effect size and power.
 
+```{r, message=FALSE}
+output2 = vector("list",length=6)
+for (i in 1:6) {
+  output2[[i]] = rerun(10000, sim_regression(beta1=beta1_list[[i]])) %>% 
+    bind_rows() %>% filter(rownames=="x") %>% 
+    mutate(coeff = rownames,
+           coeff = recode(coeff,"x" = paste0("beta1_",i))) %>% 
+    select(coeff, estimate, pr_t)
+}
 
+bind_rows(output2) %>% 
+  group_by(coeff) %>% 
+  mutate(average_est = mean(estimate),
+         if_reject = case_when(
+    pr_t > 0.05 ~ "fail to reject",
+    pr_t <= 0.05 ~ "reject")) %>% 
+  filter(if_reject=="reject") %>% 
+  mutate(av_rej_est = mean(estimate)) %>% 
+  ggplot(aes(x=coeff,y=average_est))+
+  geom_point()+
+  geom_point(aes(x=coeff,y=av_rej_est,color="#CC0000"))+
+  labs(
+    x="True beta1 coefficient",
+    y="average estimate of beta1",
+    title="Plot 2 (overlayed with Average Estimates of Beta1 Among Rejected)"
+  )+
+  theme(plot.title = element_text(face = "bold"))+
+  theme_classic()
+
+```
+
+We combine two plot with different values in y-axis together. The black dot stands for average beta1 estimates; the red dot stands for average beta1 estimate among dataset that reject null. As the true beta1 value increase, the difference between two average estimates of beta1 become smaller. Their values become closer to true beta1 values as the true beta1 value increase.
+
+The average estimate of beta1 for which the null is rejected is approximately equal to the true value of beta1 as the beta1 get larger. We can borrow the result from last plot to explain this statement. As the effect size increases, the proportion of reject of the null increases, which mean the number of reject of the null approximate to the total number of the sample. As we calculate the mean, average beta1 estimate among reject datasets will approximate to the overall average beta1 estimate.   
 
 
 
