@@ -2,7 +2,7 @@
 title: "p8105_hw5_zz2603"
 author: "Ziyi Zhao"
 date: "11/5/2019"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
