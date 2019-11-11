@@ -96,7 +96,7 @@ tidydf %>%
 From the plot, we can find there is a general increasing trend in experiment group as the time increase. The data of two groups between week 2 are largely overlapped, but then the values of experiment group began to increase slightly as time p increase. The general trend among control group tends to be flat. Until week 6, most subjects in experiment group have greater values than values in control groups.
 
 # Problem 3
-```{r}
+```{r error=TRUE}
 set.seed(1)
 
 output = vector("list", 10000)
@@ -161,7 +161,7 @@ sim1to6_result %>% ggplot(aes(x=coeff,y=prop))+
 
 There is an increasing trend between the proportion of times the null was rejected and the true value of beta1. There is a positive association between effect size and power.
 
-```{r}
+```{r error=TRUE}
 output2 = vector("list",length=6)
 for (i in 1:6) {
   output2[[i]] = rerun(10000, sim_regression(beta1=beta1_list[[i]])) %>% 
